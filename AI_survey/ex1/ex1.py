@@ -20,13 +20,11 @@ preprocessor = ColumnTransformer(
 
 # Apply the transformations
 try:
-    # The transformed data might be sparse, depending on the number of categories in your categorical variables
     data_transformed = preprocessor.fit_transform(data)
     print("Data successfully transformed.")
 except Exception as e:
     print(f"An error occurred during transformation: {e}")
 
-# Impute missing values if necessary (SimpleImputer is typically used before scaling and encoding, adjust as per your dataset's requirements)
 imputer = SimpleImputer(strategy='mean')
 data_imputed = imputer.fit_transform(data_transformed)
 
