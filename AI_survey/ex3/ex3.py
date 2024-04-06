@@ -1,3 +1,4 @@
+# Author: Yair Davidof 2024.
 # Importing necessary libraries
 import numpy as np
 import pandas as pd
@@ -7,7 +8,7 @@ from sklearn.metrics import accuracy_score, classification_report, confusion_mat
 from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import make_pipeline
-from ucimlrepo import fetch_ucirepo  # Assuming 'ucimlrepo' is a custom or third-party library for fetching UCI datasets
+from ucimlrepo import fetch_ucirepo
 
 # Fetch the dataset from the UCI Machine Learning Repository using a predefined function
 wine_quality = fetch_ucirepo(id=186)
@@ -38,7 +39,8 @@ X_scaled = scaler.fit_transform(X)
 # Split the normalized data into training and testing sets for model evaluation
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
 
-# Initialize a Gradient Boosting Classifier. This model will be used to classify wine quality
+# Initialize a Gradient Boosting Classifier.
+# This model will be used to classify wine quality
 gb_model = GradientBoostingClassifier(random_state=42)
 
 # Set up GridSearchCV to find the best parameters for the model, enhancing prediction accuracy
