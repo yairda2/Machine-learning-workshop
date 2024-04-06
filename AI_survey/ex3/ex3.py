@@ -1,4 +1,4 @@
-# Author: Yair Davidof 2024.
+# Author: Yair Davidof 2024
 # Importing necessary libraries
 import numpy as np
 import pandas as pd
@@ -7,7 +7,6 @@ from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from sklearn.preprocessing import StandardScaler
-from sklearn.pipeline import make_pipeline
 from ucimlrepo import fetch_ucirepo
 
 # Fetch the dataset from the UCI Machine Learning Repository using a predefined function
@@ -15,11 +14,11 @@ wine_quality = fetch_ucirepo(id=186)
 
 # Extract features and target variable from the dataset
 X = wine_quality.data.features  # Features matrix containing the input variables
-y = wine_quality.data.targets  # Target variable 'quality'
+y = wine_quality.data.targets.copy()  # Create a copy to avoid SettingWithCopyWarning when modifying
 
 # Convert the numeric quality scores into categorical classes suitable for classification
 # Binning quality scores into three categories: low (0), medium (1), high (2)
-y['quality'] = pd.cut(y['quality'], bins=[0, 5, 7, 10], labels=[0, 1, 2])
+y.loc[:, 'quality'] = pd.cut(y['quality'], bins=[0, 5, 7, 10], labels=[0, 1, 2])
 
 # Display the structure and summary statistics of the features dataset
 print(X.info())
