@@ -1,67 +1,67 @@
-# Author: Yair Davidof. 2024
+# Importing necessary libraries
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
-import pandas as pd  # Import pandas for additional handling of the dataset
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.model_selection import train_test_split, cross_val_score, GridSearchCV
 from sklearn.preprocessing import StandardScaler
-from ucimlrepo import fetch_ucirepo
+from sklearn.pipeline import make_pipeline
+from ucimlrepo import fetch_ucirepo  # Assuming 'ucimlrepo' is a custom or third-party library for fetching UCI datasets
 
-# Fetch the dataset
+# Fetch the dataset from the UCI Machine Learning Repository using a predefined function
 wine_quality = fetch_ucirepo(id=186)
 
-# Data (as pandas DataFrames)
-X = wine_quality.data.features  # Features
-y = wine_quality.data.targets  # Target variable
+# Extract features and target variable from the dataset
+X = wine_quality.data.features  # Features matrix containing the input variables
+y = wine_quality.data.targets  # Target variable 'quality'
 
-# Convert the numeric quality scores into categorical classes
-# Define bins for quality scores to categorize wine quality:
-# Assuming 'quality' is a numeric score, categorize them into low, medium, high
+# Convert the numeric quality scores into categorical classes suitable for classification
+# Binning quality scores into three categories: low (0), medium (1), high (2)
 y['quality'] = pd.cut(y['quality'], bins=[0, 5, 7, 10], labels=[0, 1, 2])
 
-# Basic information about features
+# Display the structure and summary statistics of the features dataset
 print(X.info())
-
-# Descriptive statistics of the features
 print(X.describe())
 
-# Distribution of the target variable 'quality' after categorization
+# Visualize the distribution of the wine quality categories
 y['quality'].value_counts().plot(kind='bar')
 plt.title('Distribution of Wine Quality Categories')
 plt.xlabel('Quality Category')
 plt.ylabel('Frequency')
 plt.show()
 
-# Feature Scaling
+# Normalize the feature data to have mean=0 and variance=1 to improve model performance
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
-# Splitting data into training and testing sets
+# Split the normalized data into training and testing sets for model evaluation
 X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
 
-# Initialize and train the GradientBoostingClassifier
-model = GradientBoostingClassifier(n_estimators=100, random_state=42)
-model.fit(X_train, y_train.values.ravel())  # Fit model on training data
+# Initialize a Gradient Boosting Classifier. This model will be used to classify wine quality
+gb_model = GradientBoostingClassifier(random_state=42)
 
-# Predict on the test set
-y_pred = model.predict(X_test)
-print("Accuracy:", accuracy_score(y_test, y_pred))
+# Set up GridSearchCV to find the best parameters for the model, enhancing prediction accuracy
+param_grid = {
+    'n_estimators': [100, 200],  # Specifies the number of trees in the model
+    'learning_rate': [0.01, 0.1],  # Controls the rate at which the model learns
+    'max_depth': [3, 5]  # Limits the number of nodes in each tree
+}
+# Perform grid search with 10-fold cross-validation
+grid_search = GridSearchCV(gb_model, param_grid, cv=10, scoring='accuracy')
+grid_search.fit(X_train, y_train.values.ravel())
+
+# Print the best parameters and the best cross-validation score obtained
+print("Best parameters:", grid_search.best_params_)
+print("Best cross-validation score: {:.2f}".format(grid_search.best_score_))
+
+# Evaluate the best model from grid search on the testing data set
+optimal_gb_model = grid_search.best_estimator_
+y_pred = optimal_gb_model.predict(X_test)
+print("Test set accuracy:", accuracy_score(y_test, y_pred))
 print("Classification Report:\n", classification_report(y_test, y_pred))
 print("Confusion Matrix:\n", confusion_matrix(y_test, y_pred))
 
-# Feature Importance
-importances = model.feature_importances_
-indices = np.argsort(importances)[::-1]
-
-# Plotting feature importances
-plt.figure(figsize=(10, 6))
-plt.title('Feature Importance')
-plt.bar(range(X.shape[1]), importances[indices])
-plt.xticks(range(X.shape[1]), X.columns[indices], rotation=90)
-plt.tight_layout()
-plt.show()
-
-# Cross-validation to evaluate model
-scores = cross_val_score(model, X_scaled, y.values.ravel(), cv=10, scoring='accuracy')
-print("CV Accuracy:", np.mean(scores))
+# Conduct final evaluation using 10-fold cross-validation with the optimal parameters
+final_scores = cross_val_score(optimal_gb_model, X_scaled, y.values.ravel(), cv=10, scoring='accuracy')
+print("Final CV Accuracy:", np.mean(final_scores))
