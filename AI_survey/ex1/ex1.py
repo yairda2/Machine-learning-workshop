@@ -1,49 +1,42 @@
-import pandas as pd
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.impute import SimpleImputer
-from sklearn.decomposition import TruncatedSVD  # Using TruncatedSVD for sparse data
+def apply_demorgans_law(expression):
+    # Applying De Morgan's Law to expressions like ¬(A ∧ B) -> ¬A ∨ ¬B
+    return expression.replace("¬(", "").replace(" ∧ ", " ∨ ¬").replace(")", "")
 
-# Load the dataset
-data = pd.read_csv(r"C:\Users\yair\Documents\GitHub\Machine-learning-workshop\AI_survey\ex1\Drug_overdose_death_rates__by_drug_type__sex__age__race__and_Hispanic_origin__United_States (1).csv")
-# Define the ColumnTransformer to apply different preprocessing to specified columns
-preprocessor = ColumnTransformer(
-    transformers=[
-        # Apply OneHotEncoder to categorical columns. Adjust 'YEAR' and 'AGE' with actual categorical column names from your dataset.
-        ('cat', OneHotEncoder(), ['YEAR', 'AGE']),
+def apply_implications(expression):
+    # Converting implications: A → B is equivalent to ¬A ∨ B
+    if "→" in expression:
+        parts = expression.split(" → ")
+        return f"¬({parts[0]}) ∨ ({parts[1]})"
+    return expression
 
-        # Apply StandardScaler to numerical columns. Replace 'ESTIMATE' with the actual numerical column names from your dataset.
-        ('num', StandardScaler(), ['ESTIMATE'])
-    ],
-    remainder='drop'  # Drops all other columns not specified
-)
+def apply_equivalences(expression):
+    # Converting equivalences: A ↔ B is equivalent to (A ∧ B) ∨ (¬A ∧ ¬B)
+    if "↔" in expression:
+        parts = expression.split(" ↔ ")
+        return f"({parts[0]} ∧ {parts[1]}) ∨ (¬{parts[0]} ∧ ¬{parts[1]})"
+    return expression
 
-# Apply the transformations
-try:
-    data_transformed = preprocessor.fit_transform(data)
-    print("Data successfully transformed.")
-except Exception as e:
-    print(f"An error occurred during transformation: {e}")
+def distribute(expression):
+    # This function would normally handle the distribution of OR over AND
+    # For the sake of simplicity, assume it returns the input
+    return expression
 
-imputer = SimpleImputer(strategy='mean')
-data_imputed = imputer.fit_transform(data_transformed)
+# Example formula
+formula = "(((x1 ∧ x2) ∨ x4) → (x2 ∧ x3)) ∧ (x1 ↔ x3)"
 
-# Use TruncatedSVD for dimensionality reduction on potentially sparse data
-svd = TruncatedSVD(n_components=2)
-X_svd = svd.fit_transform(data_imputed)
+# Step by step transformation
+step1 = apply_implications(formula)
+print(step1)
 
-# Convert the dimensionality-reduced data into a DataFrame for further analysis or visualization
-X_svd_df = pd.DataFrame(X_svd, columns=['Component 1', 'Component 2'])
+step2 = apply_demorgans_law(step1)
+print(step2)
 
-# Display the first few rows to verify
-print(X_svd_df.head())
+step3 = apply_equivalences(step2)
+print(step3)
 
+step4 = distribute(step3)
+print(step4)
 
-import matplotlib.pyplot as plt
-
-plt.figure(figsize=(8, 6))
-plt.scatter(X_svd_df['Component 1'], X_svd_df['Component 2'])
-plt.xlabel('Component 1')
-plt.ylabel('Component 2')
-plt.title('2D Projection of Data')
-plt.show()
+# Simplified hardcoded solution for direct 3-SAT conversion without logic simplification:
+# This is just for illustrative purposes:
+final_3
